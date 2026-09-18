@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Opción B — Simulador ICS/SCADA — Hackathon CyberAR 2026</title>
+<style>
+  :root {
+    --bg:          #ffffff;
+    --card:        #ffffff;
+    --dark:        #0b1f3a;
+    --primary:     #1f4e79;
+    --accent1:     #5b9bd5;
+    --accent2:     #8ecae6;
+    --success:     #10b981;
+    --warning:     #f59e0b;
+    --danger:      #ef4444;
+    --text:        #1e293b;
+    --text-muted:  #64748b;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); margin:0; font-family: 'Segoe UI', Arial, sans-serif; color: var(--text); }
+  .page { max-width: 800px; margin: 0 auto; padding: 40px 32px; }
+  .section-card { background: white; border-radius: 12px; padding: 28px 32px;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 20px; }
+  .header-banner {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 60%, var(--accent1) 100%);
+    border-radius: 14px; padding: 40px 40px 32px; margin-bottom: 24px; color: white;
+    display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+  }
+  .header-banner img.icon { width:64px; height:64px; object-fit:contain; background:white; border-radius:12px; padding:6px; }
+  .header-banner h1 { font-size: 21pt; color: white; margin:0 0 6px; }
+  .header-banner .subtitle { color: #d6ecfa; font-size: 11pt; }
+  .header-banner .chip {
+    display: inline-block; background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 20px;
+    padding: 4px 14px; font-size: 9pt; color: white; margin-top: 14px; margin-right:8px;
+  }
+  h2 { font-size:15pt; color: var(--dark); margin:0; }
+  .sec-head { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .sec-num { background:linear-gradient(135deg,var(--primary),var(--accent1)); color:white;
+    border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px; flex-shrink:0; }
+  .sec-line { width:60px; height:4px; background:linear-gradient(90deg,var(--primary),var(--accent1));
+    border-radius:2px; margin-bottom:18px; }
+  p { line-height:1.5; font-size:10.5pt; }
+  ul { padding-left:18px; }
+  li { margin-bottom:6px; font-size:10.5pt; line-height:1.4; }
+  table { width:100%; border-collapse:collapse; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; font-size:9.5pt; }
+  thead th { background: linear-gradient(135deg, var(--primary), var(--dark)); color:white; padding:8px 10px; text-align:left; }
+  tbody td { padding:7px 10px; border-top:1px solid #e2e8f0; }
+  tbody tr:nth-child(even) { background:#f8fafc; }
+  .stat-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:140px; background:white; border-radius:10px; padding:16px;
+    text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.06); border:1px solid #eef2f7; }
+  .stat .n { font-size:24pt; font-weight:800; }
+  .stat .l { font-size:8.5pt; color:var(--text-muted); margin-top:4px; }
+  .callout { background: linear-gradient(90deg, #eff6ff, #f0f9ff); border-left:5px solid var(--accent1);
+    border-radius:0 8px 8px 0; padding:14px 18px; margin:14px 0; font-size:10pt; }
+  .callout.red { background: linear-gradient(90deg, #fee2e2, #fff5f5); border-left-color: var(--danger); }
+  .callout.green { background: linear-gradient(90deg, #d1fae5, #f0fdf4); border-left-color: var(--success); }
+  .pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:8.5pt; font-weight:700; color:white; white-space:nowrap; }
+  .pill.g { background: var(--success); } .pill.a { background: var(--warning); } .pill.r { background: var(--danger); }
+  blockquote { background: linear-gradient(135deg, var(--dark), var(--primary)); color:#e2e8f0;
+    border-radius:10px; padding:26px 30px; border:none; font-style:normal; margin:16px 0; font-size:10.5pt; }
+  svg { background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; display:block; max-width:100%; }
+  .bib-entry { font-size:9.5pt; color:#475569; margin-bottom:6px; }
+  .footer { border-top:2px solid #e2e8f0; padding-top:12px; margin-top:24px; font-size:8.5pt; color:#94a3b8; text-align:center; }
+  .logos-strip { display:flex; align-items:center; gap:16px; justify-content:center; margin:18px 0; flex-wrap:wrap; }
+  .logos-strip img { height:44px; object-fit:contain; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+  @media (max-width:640px){ .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header-banner">
+    <img class="icon" src="data:image/png;base64,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" alt="CyberAR">
+    <div>
+      <h1>Opción B — Simulador de Postura Defensiva ICS/SCADA</h1>
+      <div class="subtitle">Plan de arquitectura · Equipo Malvinas Argentinas · Hackathon CyberAR 2026 (FIE-UNDEF)</div>
+      <div class="chip">15.09.2026</div>
+      <div class="chip">Eje 2, línea 3 — ICS/SCADA/OT</div>
+    </div>
+  </div>
+
+  <!-- HOJA 1 — APERTURA -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">1</div><h2>La idea en una frase</h2></div>
+    <div class="sec-line"></div>
+    <p>No construimos "un" demo de ataque a una planta. Construimos un <strong>generador de escenarios de ciberataque a infraestructura crítica</strong>: a partir de datos de una jurisdicción real (municipio, provincia, nación) y de 5 "perillas" de dificultad, arma una red industrial simulada, le inyecta ataques, los detecta y los reporta — y se puede reinstanciar para cualquier organización cambiando un archivo de configuración.</p>
+    <p>El <strong>motor Modbus</strong> (protocolo de comunicación estándar de plantas industriales — energía, agua, control de accesos) es el núcleo técnico aportado por Joaquín. La capa nueva de Francisco es lo que convierte ese demo fijo en un producto generalizable.</p>
+    <div class="callout"><strong>Decisión clave (resuelve la restricción de hardware):</strong> el generador de escenarios es determinístico, por reglas — corre en cualquier laptop, sin placa de video (GPU), con cero riesgo de fallo en la demo. La inteligencia artificial (IA) es una capa opcional que solo redacta el texto descriptivo del escenario; si no está disponible, el sistema arma el mismo texto con una plantilla fija. La IA nunca decide parámetros técnicos.</div>
+
+    <svg width="720" height="230" viewBox="0 0 720 230">
+      <rect x="10" y="10" width="700" height="34" rx="6" fill="#0b1f3a"/>
+      <text x="360" y="32" text-anchor="middle" fill="white" font-size="11">L0 · Datos de la jurisdicción (con fuente citada por dato)</text>
+      <line x1="360" y1="44" x2="360" y2="58" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="355,58 365,58 360,66" fill="#94a3b8"/>
+
+      <rect x="10" y="66" width="340" height="34" rx="6" fill="#1f4e79"/>
+      <text x="180" y="88" text-anchor="middle" fill="white" font-size="10.5">L1 · Modelaje del defensor (territorio)</text>
+      <rect x="370" y="66" width="340" height="34" rx="6" fill="#1f4e79"/>
+      <text x="540" y="88" text-anchor="middle" fill="white" font-size="10.5">L3 · 5 perillas de dificultad</text>
+      <line x1="360" y1="100" x2="360" y2="114" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="355,114 365,114 360,122" fill="#94a3b8"/>
+
+      <rect x="180" y="122" width="360" height="34" rx="6" fill="#5b9bd5"/>
+      <text x="360" y="144" text-anchor="middle" fill="white" font-size="10.5">Generador determinístico → escenario.json</text>
+      <line x1="360" y1="156" x2="360" y2="170" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="355,170 365,170 360,178" fill="#94a3b8"/>
+
+      <rect x="10" y="178" width="220" height="34" rx="6" fill="#1f4e79"/>
+      <text x="120" y="200" text-anchor="middle" fill="white" font-size="10">L2 Planta Modbus (Joaquín)</text>
+      <rect x="250" y="178" width="220" height="34" rx="6" fill="#1f4e79"/>
+      <text x="360" y="200" text-anchor="middle" fill="white" font-size="10">L2b Red team (ataques)</text>
+      <rect x="490" y="178" width="220" height="34" rx="6" fill="#0b1f3a"/>
+      <text x="600" y="200" text-anchor="middle" fill="white" font-size="10">L4 Blue team (IDS)</text>
+    </svg>
+    <p style="font-size:9pt;color:var(--text-muted);">L5 (mitigación/reporte) y L6 (narrativización opcional con IA) cierran el flujo tras la detección — ver secciones 4 y 5.</p>
+  </div>
+
+  <!-- HOJA 2 — 5 VARIABLES DE ESCENARIO -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Las 5 variables de escenario</h2></div>
+    <div class="sec-line"></div>
+    <p>Cada variable es una perilla que el generador traduce a un parámetro técnico concreto de pymodbus (librería que simula el protocolo Modbus) y scapy (librería que fabrica e inyecta paquetes de red).</p>
+    <table>
+      <thead><tr><th>#</th><th>Variable</th><th>Qué modula técnicamente</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Tipo de ataque</td><td>Qué módulo del red team se activa (scan, escritura ilegítima, replay, spoofing de dirección, flood/DoS) y en qué orden — encadenados en difícil.</td></tr>
+        <tr><td>2</td><td>Intensidad / velocidad</td><td>Ritmo de paquetes por segundo. Baja = escritura puntual difícil de ver; alta = flood evidente.</td></tr>
+        <tr><td>3</td><td>Criticidad del objetivo</td><td>Qué registros del PLC (controlador industrial simulado) se atacan — de telemetría no crítica a válvula de agua o breaker de energía.</td></tr>
+        <tr><td>4</td><td>Sofisticación del atacante</td><td>Evasión: sigiloso imita tráfico legítimo; ruidoso opera fuera de rango y a los saltos, fácil de cazar.</td></tr>
+        <tr><td>5</td><td>Ruido de fondo</td><td>Volumen de tráfico legítimo simultáneo que enmascara el ataque — la perilla que más cambia la dificultad de detección.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Por qué "ruido de fondo" y no otra variable:</strong> "vectores simultáneos" ya lo cubre la variable 1; "preparación previa del defensor" pertenece a la capa de modelaje territorial (sección 3), no al escenario; y "tiempo hasta detección" es en realidad un resultado a medir, no una entrada. El ruido de fondo es la causa técnica que sí se traduce en un parámetro limpio y además calza con la idea original de Joaquín de detectar "ritmos sospechosos" — que solo tienen sentido contra un ritmo base.</div>
+  </div>
+
+  <!-- HOJA 3 — VARIABLES DE MODELAJE DEL DEFENSOR -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Variables del defensor — territorio y jurisdicción</h2></div>
+    <div class="sec-line"></div>
+    <p>Caracterizan a quién se defiende: el municipio, la provincia o la nación simulada. Se cargan desde un archivo <code>perfil-jurisdiccion.json</code> por entidad, siempre con placeholders — nunca datos reales de un municipio concreto — y cada indicador con su fuente citada.</p>
+    <table>
+      <thead><tr><th>Variable</th><th>Cómo modula la simulación</th></tr></thead>
+      <tbody>
+        <tr><td>Escala de gobierno</td><td>Multiplicador de topología: municipal 1-3 PLCs, provincial varios sitios federados, nacional federación de provincias.</td></tr>
+        <tr><td>Población</td><td>Ajusta cuántos servicios digitalizados expuestos tiene cada nodo.</td></tr>
+        <tr><td>Dependencias críticas</td><td>Cada dependencia (energía/agua/accesos) instancia un PLC virtual propio con sus registros.</td></tr>
+        <tr><td>Nivel de digitalización</td><td>Cuántos registros quedan expuestos y escribibles remotamente por PLC.</td></tr>
+        <tr><td>Presupuesto de ciberseguridad</td><td>Defensa de arranque: cuántas reglas de detección activas, si hay segmentación de red, si hay lista blanca de direcciones.</td></tr>
+        <tr><td>Marco normativo vigente</td><td>Traduce "existe una norma" en "hay un control activado" en el escenario simulado.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Lógica territorial:</strong> la escala de gobierno manda sobre cualquier otra variable — un perfil municipal nunca puede generar la superficie de ataque de una nación. Un municipio chico no tiene la misma exposición que un Estado nacional, y el generador valida esa coherencia automáticamente.</div>
+  </div>
+
+  <!-- HOJA 4 — 3 DIFICULTADES + MVP -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">4</div><h2>Los 3 escenarios de dificultad y el MVP de cierre</h2></div>
+    <div class="sec-line"></div>
+    <table>
+      <thead><tr><th>Perilla</th><th>Fácil</th><th>Normal</th><th>Difícil</th></tr></thead>
+      <tbody>
+        <tr><td>Tipo de ataque</td><td>1 tipo aislado</td><td>2-3 encadenados</td><td>4-5 en cadena coordinada</td></tr>
+        <tr><td>Intensidad</td><td>Baja, evidente</td><td>Media</td><td>Mixta (lenta + ráfaga)</td></tr>
+        <tr><td>Criticidad objetivo</td><td>Baja/media</td><td>Media/alta</td><td>Alta, multi-registro</td></tr>
+        <tr><td>Sofisticación</td><td>Ruidoso</td><td>Medio</td><td>Sigiloso</td></tr>
+        <tr><td>Ruido de fondo</td><td>Bajo</td><td>Medio</td><td>Alto</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Escenario MVP de cierre — ataque coordinado multi-nivel:</strong> se instancian 3 defensores en paralelo (nación, provincia y municipio-ejemplo) y una campaña en cascada golpea a los tres a la vez. La demo muestra los 3 tableros de detección reaccionando en simultáneo y contrasta cómo el municipio chico, con menos presupuesto y digitalización, cae distinto que la nación.</p>
+
+    <svg width="720" height="180" viewBox="0 0 720 180">
+      <rect x="20" y="20" width="200" height="60" rx="8" fill="#0b1f3a"/>
+      <text x="120" y="45" text-anchor="middle" fill="white" font-size="10.5">Nación</text>
+      <text x="120" y="62" text-anchor="middle" fill="#d6ecfa" font-size="8.5">federación de provincias</text>
+      <rect x="260" y="20" width="200" height="60" rx="8" fill="#1f4e79"/>
+      <text x="360" y="45" text-anchor="middle" fill="white" font-size="10.5">Provincia</text>
+      <text x="360" y="62" text-anchor="middle" fill="#d6ecfa" font-size="8.5">varios sitios</text>
+      <rect x="500" y="20" width="200" height="60" rx="8" fill="#5b9bd5"/>
+      <text x="600" y="45" text-anchor="middle" fill="white" font-size="10.5">Municipio</text>
+      <text x="600" y="62" text-anchor="middle" fill="#0b1f3a" font-size="8.5">1-2 PLCs, ejemplo placeholder</text>
+
+      <line x1="120" y1="80" x2="120" y2="110" stroke="#ef4444" stroke-width="2"/>
+      <line x1="360" y1="80" x2="360" y2="110" stroke="#ef4444" stroke-width="2"/>
+      <line x1="600" y1="80" x2="600" y2="110" stroke="#ef4444" stroke-width="2"/>
+      <text x="360" y="105" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">campaña coordinada, en simultáneo</text>
+
+      <rect x="20" y="115" width="680" height="45" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="360" y="142" text-anchor="middle" fill="#1e293b" font-size="10">Tablero split-screen: detección + reporte por nivel de gobierno</text>
+    </svg>
+    <div class="callout"><strong>Cierre del pitch:</strong> "esto que acaban de ver para 3 niveles de un Estado se instancia para cualquier organización cambiando un archivo JSON."</div>
+  </div>
+
+  <!-- HOJA 5 — STACK + OPORTUNIDAD DE MERCADO -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">5</div><h2>Stack técnico y oportunidad de mercado</h2></div>
+    <div class="sec-line"></div>
+    <div class="grid2">
+      <div>
+        <p><strong>Stack (Python, sin GPU):</strong></p>
+        <ul>
+          <li><code>pymodbus</code> — PLC virtual (planta) y tráfico legítimo de fondo.</li>
+          <li><code>scapy</code> — inyección de ataques y sniffing para el detector (IDS).</li>
+          <li><code>fastapi</code> + <code>pydantic</code> — orquestador y contratos de datos tipados.</li>
+          <li><code>streamlit</code> — tablero de demo en vivo.</li>
+          <li><code>docker compose</code> — redes aisladas por nivel, sin salida a internet.</li>
+        </ul>
+        <p>La narrativización con IA es opcional: por defecto corre con una plantilla de texto fija (cero dependencias); si hay disponible un modelo chico (Llama 3.2 3B o Phi-3 mini) corre local, en CPU, sin placa de video. Nunca decide parámetros técnicos ni es requisito para que el sistema funcione.</p>
+      </div>
+      <div>
+        <p><strong>Oportunidad de mercado — Estado argentino en sus 3 niveles:</strong></p>
+        <ul>
+          <li>Ningún organismo de defensa/seguridad argentino certificado ISO 27001; la única auditoría pública sobre TI crítica documentó cero pruebas de penetración en 3 años.</li>
+          <li>Cientos de municipios y 24 provincias sin capacidad de simular su propia exposición.</li>
+          <li>Corre en una laptop, sin GPU y sin mandar datos afuera — exactamente la soberanía tecnológica que exige el reglamento y lo único que un municipio sin presupuesto de ciberseguridad puede pagar.</li>
+        </ul>
+        <div class="callout green"><strong>De demo a producto:</strong> no es "un ataque a una planta" — es un framework de modelado de postura defensiva que se instancia para cualquier organización cambiando un archivo de configuración.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOJA 6 — ROADMAP -->
+  <div class="section-card">
+    <div class="sec-head"><div class="sec-num">6</div><h2>Roadmap de construcción</h2></div>
+    <div class="sec-line"></div>
+    <p>El plan completo son 22 pasos chicos, pensados para que un segundo agente los ejecute generando archivos sin correr ni testear código todavía. Resumidos en 7 bloques, en orden de dependencia:</p>
+    <table>
+      <thead><tr><th>Bloque</th><th>Qué produce</th></tr></thead>
+      <tbody>
+        <tr><td>A · Contratos y esqueleto</td><td>README, dependencias, esquemas de datos (perfil y escenario), presets de dificultad y un "escenario.json" de ejemplo escrito a mano.</td></tr>
+        <tr><td>B · Modelaje y generador</td><td>Plantillas de perfil (municipal/provincial/nacional) y el generador que combina perfil + dificultad en un escenario.</td></tr>
+        <tr><td>C · Motor Modbus</td><td>El PLC virtual y el tráfico legítimo de fondo — núcleo técnico de Joaquín.</td></tr>
+        <tr><td>D · Red team</td><td>Un archivo por tipo de ataque (scan, escritura ilegítima, replay, spoofing, flood) y el orquestador que ejecuta la secuencia.</td></tr>
+        <tr><td>E · Blue team + reporte</td><td>Motor de reglas de detección, mitigación y el reporte de incidente por ataque.</td></tr>
+        <tr><td>F · Narrativización opcional</td><td>La capa de texto con IA, aislada y con caída automática a plantilla si no está disponible.</td></tr>
+        <tr><td>G · Pegamento y demo</td><td>Redes aisladas, API del orquestador, el escenario MVP de 3 niveles y el tablero final.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout green"><strong>Estado actual:</strong> el plan ya fue revisado y ajustado (numeración de capas aclarada, cableado ataque→módulo explícito, dependencias separadas en core/opcional, fallback de IA blindado con import diferido) y está en construcción siguiendo este roadmap.</div>
+  </div>
+
+  <div class="footer">15.09.2026 · Hackathon CyberAR 2026 (FIE-UNDEF) · Equipo Malvinas Argentinas</div>
+</div>
+</body>
+</html>

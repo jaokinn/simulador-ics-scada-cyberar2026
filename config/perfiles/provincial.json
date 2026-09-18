@@ -1,0 +1,19 @@
+{
+  "_comentario": "Bloque B, Paso 6 — plantilla placeholder. Nunca usar datos reales de una provincia concreta. Ver SPEC.md sección 3.1 para la regla de cantidad de dependencias por escala.",
+
+  "escala_gobierno": "provincial",
+
+  "poblacion": 900000,
+  "poblacion_fuente": "placeholder — reemplazar con dato citado",
+
+  "_comentario_dependencias_criticas": "Varios sitios federados (SPEC.md sección 3): dos plantas de agua en distintos departamentos, una central de energía y un sistema de accesos.",
+  "dependencias_criticas": ["agua", "agua", "energia", "accesos"],
+
+  "nivel_digitalizacion": 3,
+  "nivel_digitalizacion_fuente": "placeholder — reemplazar con dato citado",
+
+  "presupuesto_ciberseguridad": 3,
+  "presupuesto_ciberseguridad_fuente": "placeholder — reemplazar con dato citado",
+
+  "marco_normativo_vigente": true
+}

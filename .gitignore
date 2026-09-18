@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.vscode/
+.DS_Store
+.ruff_cache/
+build/
+build_win/
+build_lin/
+dist/
+dist_win/
+reporte/
+reporte_nac/

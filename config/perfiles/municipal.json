@@ -1,0 +1,19 @@
+{
+  "_comentario": "Bloque B, Paso 6 — plantilla placeholder. Nunca usar datos reales de un municipio concreto. Ver SPEC.md sección 3.1 para la regla de cantidad de dependencias por escala.",
+
+  "escala_gobierno": "municipal",
+
+  "poblacion": 45000,
+  "poblacion_fuente": "placeholder — reemplazar con dato citado",
+
+  "_comentario_dependencias_criticas": "1-3 PLCs para un municipio (SPEC.md sección 3). Placeholder: agua + control de accesos, sin energía propia.",
+  "dependencias_criticas": ["agua", "accesos"],
+
+  "nivel_digitalizacion": 2,
+  "nivel_digitalizacion_fuente": "placeholder — reemplazar con dato citado",
+
+  "presupuesto_ciberseguridad": 2,
+  "presupuesto_ciberseguridad_fuente": "placeholder — reemplazar con dato citado",
+
+  "marco_normativo_vigente": false
+}

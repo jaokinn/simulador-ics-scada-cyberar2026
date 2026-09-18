@@ -1,0 +1,133 @@
+{
+  "_comentario": "Bloque C, Paso 10 — mapa de registros Modbus por dependencia crítica. Direcciones son offsets de protocolo 0-based (lo que pymodbus usa on-the-wire), no la notación clásica '4xxxx' de holding register de la documentación ICS antigua (esa es solo una convención de numeración humana, no se transmite en el protocolo). Cada PLCVirtual instancia su propio banco de registros empezando en 0 (una dependencia = un PLC, ver Paso 12).",
+
+  "_comentario_simplificacion": "Todos los puntos se modelan como holding registers (function codes 03 leer / 06 y 16 escribir), incluso los que en un ICS real serían coils de 1 bit (estado de válvula, breaker, puerta). Es una simplificación deliberada del alcance del Paso 9 (banco único de holding registers) — no afecta la lógica de ataque/detección, pero hay que aclararlo si un jurado técnico pregunta por qué no hay coils separados.",
+
+  "_comentario_escala": "Los registros Modbus son enteros de 16 bits sin signo (0-65535); los valores con decimales (ppm, bar, A, Hz) se guardan escalados como entero y se dividen por 'escala' para volver al valor de ingeniería. Ej: nivel_cloro_ppm cruda=250, escala=100 -> 2.50 ppm.",
+
+  "_comentario_valor_inicial": "Valor crudo con el que arranca el PLCVirtual (Paso 9). Representa una planta operando NORMALMENTE (válvulas abiertas, breaker cerrado, tensión/corriente/frecuencia nominales, accesos cerrados y sin incidentes) — no el mínimo del rango válido, que en varios registros representaría una planta ya apagada/en falla antes de que el red team haga nada.",
+
+  "_comentario_criticidad": "Qué tan crítico es cada registro si un atacante lo manipula (baja/media/alta) — es la 'criticidad del objetivo' de SPEC.md sección 2 (variable de escenario #3), y determina qué registro elige el orquestador (redteam/orquestador.py) según escenario.criticidad_objetivo. Estados que cortan el servicio directo (válvula, breaker) son 'alta'; medidas de proceso son 'media'/'baja'.",
+
+  "agua": [
+    {
+      "direccion": 0,
+      "nombre": "nivel_cloro_ppm",
+      "descripcion": "Cloro residual libre en la red de distribución.",
+      "unidad": "ppm",
+      "escala": 100,
+      "rango_valido_crudo": [0, 400],
+      "rango_valido_ingenieria": [0.0, 4.0],
+      "valor_inicial": 200,
+      "criticidad": "media",
+      "_fuente_rango": "Rango de referencia de cloro residual libre para agua potable (OMS/EPA: 0.2-4 mg/L)."
+    },
+    {
+      "direccion": 1,
+      "nombre": "presion_red_bar",
+      "descripcion": "Presión de la red de distribución de agua.",
+      "unidad": "bar",
+      "escala": 10,
+      "rango_valido_crudo": [0, 100],
+      "rango_valido_ingenieria": [0.0, 10.0],
+      "valor_inicial": 50,
+      "criticidad": "baja"
+    },
+    {
+      "direccion": 2,
+      "nombre": "estado_valvula_principal",
+      "descripcion": "Estado de la válvula principal de la planta (0=cerrada, 1=abierta). Modelada como holding register por la simplificación de arriba; en un ICS real sería un coil.",
+      "unidad": "bool",
+      "escala": 1,
+      "rango_valido_crudo": [0, 1],
+      "rango_valido_ingenieria": [0, 1],
+      "valor_inicial": 1,
+      "criticidad": "alta"
+    }
+  ],
+
+  "energia": [
+    {
+      "direccion": 0,
+      "nombre": "estado_breaker",
+      "descripcion": "Estado del disyuntor/breaker principal (0=abierto, 1=cerrado).",
+      "unidad": "bool",
+      "escala": 1,
+      "rango_valido_crudo": [0, 1],
+      "rango_valido_ingenieria": [0, 1],
+      "valor_inicial": 1,
+      "criticidad": "alta"
+    },
+    {
+      "direccion": 1,
+      "nombre": "tension_v",
+      "descripcion": "Tensión del feeder de baja tensión.",
+      "unidad": "V",
+      "escala": 1,
+      "rango_valido_crudo": [0, 250],
+      "rango_valido_ingenieria": [0, 250],
+      "valor_inicial": 220,
+      "criticidad": "media",
+      "_fuente_rango": "Rango típico de distribución en baja tensión monofásica/trifásica en Argentina (~220V nominal)."
+    },
+    {
+      "direccion": 2,
+      "nombre": "corriente_a",
+      "descripcion": "Corriente del feeder.",
+      "unidad": "A",
+      "escala": 10,
+      "rango_valido_crudo": [0, 1000],
+      "rango_valido_ingenieria": [0.0, 100.0],
+      "valor_inicial": 300,
+      "criticidad": "media"
+    },
+    {
+      "direccion": 3,
+      "nombre": "frecuencia_hz",
+      "descripcion": "Frecuencia de la red.",
+      "unidad": "Hz",
+      "escala": 100,
+      "rango_valido_crudo": [4950, 5050],
+      "rango_valido_ingenieria": [49.5, 50.5],
+      "valor_inicial": 5000,
+      "criticidad": "baja",
+      "_fuente_rango": "Frecuencia nominal de la red eléctrica argentina: 50 Hz."
+    }
+  ],
+
+  "accesos": [
+    {
+      "direccion": 0,
+      "nombre": "estado_puerta_principal",
+      "descripcion": "Estado de la puerta/torniquete de acceso principal (0=cerrada, 1=abierta).",
+      "unidad": "bool",
+      "escala": 1,
+      "rango_valido_crudo": [0, 1],
+      "rango_valido_ingenieria": [0, 1],
+      "valor_inicial": 0,
+      "criticidad": "media"
+    },
+    {
+      "direccion": 1,
+      "nombre": "cerradura_electrica",
+      "descripcion": "Estado de la cerradura eléctrica (0=bloqueada, 1=liberada).",
+      "unidad": "bool",
+      "escala": 1,
+      "rango_valido_crudo": [0, 1],
+      "rango_valido_ingenieria": [0, 1],
+      "valor_inicial": 0,
+      "criticidad": "alta"
+    },
+    {
+      "direccion": 2,
+      "nombre": "intentos_denegados",
+      "descripcion": "Contador de intentos de acceso denegados desde el último reinicio.",
+      "unidad": "conteo",
+      "escala": 1,
+      "rango_valido_crudo": [0, 9999],
+      "rango_valido_ingenieria": [0, 9999],
+      "valor_inicial": 0,
+      "criticidad": "baja"
+    }
+  ]
+}

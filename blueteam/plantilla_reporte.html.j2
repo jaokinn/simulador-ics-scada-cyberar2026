@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Reporte de incidente — {{ escenario_id }}</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; color: #1a1a1a; margin: 2rem; }
+    h1 { color: #0b3d6b; border-bottom: 3px solid #0b3d6b; padding-bottom: .3rem; }
+    h2 { color: #0b3d6b; margin-top: 1.6rem; }
+    .meta { background: #f0f4f8; padding: .8rem 1rem; border-radius: 6px; }
+    .resumen { display: flex; gap: 1rem; margin: 1rem 0; }
+    .kpi { flex: 1; background: #0b3d6b; color: #fff; padding: .8rem; border-radius: 6px; text-align: center; }
+    .kpi .num { font-size: 1.8rem; font-weight: bold; display: block; }
+    .incidente { border: 1px solid #ccd6e0; border-radius: 6px; padding: 1rem; margin: 1rem 0; border-left: 6px solid #1f9d55; }
+    .badge { display: inline-block; padding: .15rem .5rem; border-radius: 4px; font-size: .8rem; color: #fff; }
+    .sev-alta { background: #c0392b; } .sev-media { background: #d68910; } .sev-baja { background: #7f8c8d; }
+    table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+    th, td { border: 1px solid #ccd6e0; padding: .4rem .6rem; text-align: left; font-size: .9rem; }
+    th { background: #eef2f6; }
+    .cadena-ok { color: #1f9d55; font-weight: bold; }
+    .cadena-mal { color: #c0392b; font-weight: bold; }
+    .narrativa { font-style: italic; background: #fbfaf2; padding: .8rem 1rem; border-radius: 6px; }
+    .fneg { border: 1px dashed #c0392b; border-radius: 6px; padding: .8rem 1rem; margin: 1rem 0; background: #fdf3f1; }
+  </style>
+</head>
+<body>
+  <h1>Reporte de incidente ICS/SCADA</h1>
+  <div class="meta">
+    <strong>Escenario:</strong> {{ escenario_id }} &middot;
+    <strong>Dificultad:</strong> {{ dificultad }} &middot;
+    <strong>Dependencia:</strong> {{ dependencia }}
+  </div>
+
+  {% if narrativa %}
+  <h2>Resumen narrado</h2>
+  <p class="narrativa">{{ narrativa }}</p>
+  {% endif %}
+
+  <div class="resumen">
+    <div class="kpi"><span class="num">{{ n_ataques }}</span> ataques ejecutados</div>
+    <div class="kpi"><span class="num">{{ n_detectados }}</span> detectados por el IDS</div>
+    <div class="kpi"><span class="num">{{ n_ataques - n_detectados }}</span> no detectados</div>
+  </div>
+
+  <p>Integridad de la cadena de evidencia:
+    {% if cadena_verificada %}<span class="cadena-ok">VERIFICADA (sin alteraciones)</span>
+    {% else %}<span class="cadena-mal">ROTA (evidencia alterada)</span>{% endif %}
+  </p>
+
+  {% if n_ataques > n_detectados %}
+  <div class="fneg">
+    <strong>{{ n_ataques - n_detectados }} ataque(s) no detectado(s) por las 3 reglas activas.</strong>
+    No es un error del sistema: es el falso negativo esperado (ej. un replay que reinyecta
+    tráfico ya válido, o un ataque sigiloso por debajo del umbral de ráfaga) — el punto
+    dramático más honesto de la demo, no algo para esconder.
+  </div>
+  {% endif %}
+
+  <h2>Incidentes detectados</h2>
+  {% for inc in incidentes %}
+  <div class="incidente">
+    <h3>{{ loop.index }}. {{ inc.tipo_ataque_probable }} &rarr; {{ inc.dependencia_afectada }} / {{ inc.registro_afectado }}</h3>
+    <p><span class="badge sev-{{ inc.severidad }}">{{ inc.regla_id }}</span> desde <strong>{{ inc.ip_origen }}</strong></p>
+    <p>{{ inc.evidencia }}</p>
+    {% if inc.mitigaciones_aplicadas %}
+    <p><strong>Mitigación aplicada:</strong></p>
+    <table>
+      <tr><th>Acción</th><th>Detalle</th></tr>
+      {% for m in inc.mitigaciones_aplicadas %}
+      <tr><td>{{ m.accion }}</td><td>{{ m.detalle }}</td></tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </div>
+  {% endfor %}
+</body>
+</html>

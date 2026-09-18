@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador ICS/SCADA — postura defensiva</title>
+<style>
+  :root{
+    --fondo:#070b12; --panel:#0e1420; --panel2:#131b2a; --borde:#1f2b3f;
+    --texto:#dbe5f2; --tenue:#7f92ad;
+    --rojo:#ff4d5e; --azul:#3da9fc; --verde:#2fd08a; --ambar:#ffb020; --violeta:#a97bff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);
+       font:14px/1.5 "Segoe UI",Roboto,system-ui,sans-serif}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+    background:radial-gradient(900px 500px at 15% -10%,#14304d,transparent),
+               radial-gradient(800px 500px at 90% 0%,#3a1330,transparent)}
+  header{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:18px 26px;border-bottom:1px solid var(--borde);background:rgba(10,15,24,.85)}
+  h1{margin:0;font-size:18px;letter-spacing:.5px}
+  h1 small{display:block;font-size:12px;font-weight:400;color:var(--tenue);letter-spacing:0}
+  .marca{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:17px;
+    background:linear-gradient(135deg,#1c3a5e,#4b1d3f);border:1px solid var(--borde)}
+  .estado{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--tenue);
+    border:1px solid var(--borde);border-radius:999px;padding:6px 14px;background:var(--panel)}
+  .punto{width:8px;height:8px;border-radius:50%;background:var(--tenue)}
+  .ver{font-size:11px;color:var(--tenue);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:1px 7px}
+  .punto.activo{background:var(--ambar);animation:latir 1s infinite}
+  .punto.listo{background:var(--verde)}
+  @keyframes latir{50%{opacity:.25}}
+
+  main{position:relative;display:grid;grid-template-columns:330px 1fr 340px;gap:16px;
+    padding:16px 26px 40px;align-items:start}
+  @media(max-width:1250px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--borde);border-radius:13px;overflow:hidden}
+  .panel > h2{margin:0;padding:12px 15px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--tenue);border-bottom:1px solid var(--borde);background:var(--panel2)}
+  .cuerpo{padding:14px 15px}
+  .pila{display:flex;flex-direction:column;gap:16px}
+
+  .opcion{width:100%;text-align:left;cursor:pointer;color:inherit;font:inherit;margin-bottom:8px;
+    background:var(--panel2);border:1px solid var(--borde);border-radius:10px;padding:10px 12px;
+    transition:border-color .15s,transform .1s}
+  .opcion:hover{border-color:#31507a}
+  .opcion:active{transform:scale(.99)}
+  .opcion.sel{border-color:var(--azul);background:#10243b;box-shadow:0 0 0 1px var(--azul) inset}
+  .opcion b{display:block;font-size:13px}
+  .opcion span{display:block;color:var(--tenue);font-size:11.5px;margin-top:2px}
+  .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .chip{font-size:10.5px;padding:2px 7px;border-radius:999px;background:#0b1422;
+    border:1px solid var(--borde);color:var(--tenue)}
+
+  #lanzar{width:100%;margin-top:6px;padding:12px;border:0;border-radius:10px;cursor:pointer;
+    font:600 14px/1 "Segoe UI",sans-serif;color:#04121f;
+    background:linear-gradient(135deg,#43b9ff,#2fd08a)}
+  #lanzar:disabled{opacity:.45;cursor:not-allowed}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .kpi{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:12px 14px}
+  .kpi b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+  .kpi span{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--tenue)}
+  .kpi.rojo b{color:var(--rojo)} .kpi.azul b{color:var(--azul)}
+  .kpi.verde b{color:var(--verde)} .kpi.violeta b{color:var(--violeta)}
+
+  #linea{max-height:min(62vh,680px);overflow-y:auto;padding:14px 15px;display:flex;
+    flex-direction:column;gap:9px}
+  .ev{border:1px solid var(--borde);border-left-width:3px;border-radius:9px;padding:9px 12px;
+    background:var(--panel2);animation:entrar .3s ease-out}
+  @keyframes entrar{from{opacity:0;transform:translateY(7px)}}
+  .ev .tit{display:flex;gap:8px;align-items:center;font-weight:600;font-size:13px}
+  .ev .txt{color:var(--tenue);font-size:12.5px;margin-top:3px}
+  .ev .tag{font-size:10px;letter-spacing:.8px;text-transform:uppercase;padding:1px 6px;border-radius:5px;
+    background:#0b1422;border:1px solid var(--borde);color:var(--tenue)}
+  .ev.rojo{border-left-color:var(--rojo)} .ev.azul{border-left-color:var(--azul)}
+  .ev.verde{border-left-color:var(--verde)} .ev.gris{border-left-color:#33415a}
+  .ev.ambar{border-left-color:var(--ambar)} .ev.violeta{border-left-color:var(--violeta)}
+  .vacio{color:var(--tenue);text-align:center;padding:40px 20px;font-size:13px}
+
+  .reg{display:flex;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px dashed #1a2537}
+  .reg:last-child{border-bottom:0}
+  .reg .n{flex:1;font-size:12.5px}
+  .reg .n em{display:block;font-style:normal;color:var(--tenue);font-size:11px}
+  .reg .v{font-variant-numeric:tabular-nums;font-weight:600}
+  .reg.mal .v{color:var(--rojo)}
+  .reg.mal{background:#26101a;margin:0 -15px;padding:8px 15px;animation:alarma .7s 3}
+  @keyframes alarma{50%{background:#3a1524}}
+
+  details{border-top:1px solid var(--borde)}
+  details summary{padding:11px 15px;cursor:pointer;font-size:12px;color:var(--tenue);list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"▸ ";color:var(--azul)}
+  details[open] summary::before{content:"▾ "}
+  details .cuerpo{padding-top:0;font-size:12.5px;color:var(--tenue)}
+  details p{margin:0 0 9px} details b{color:var(--texto)}
+  .paso{display:flex;gap:9px;margin-bottom:8px}
+  .paso i{font-style:normal;color:var(--azul);font-weight:700}
+
+  .links{display:flex;gap:8px;flex-wrap:wrap;padding:0 15px 15px}
+  .links a{flex:1;text-align:center;text-decoration:none;font-size:12px;padding:9px;border-radius:9px;
+    color:var(--texto);background:var(--panel2);border:1px solid var(--borde)}
+  .links a:hover{border-color:var(--azul)}
+  .links a.off{opacity:.35;pointer-events:none}
+  .nota{font-size:11.5px;color:var(--tenue);padding:0 15px 14px}
+  label.raw{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+  label.raw input{width:15px;height:15px;cursor:pointer}
+  code{background:#0b1422;border:1px solid var(--borde);border-radius:4px;padding:1px 5px;font-size:11.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">⚡</div>
+  <h1>Simulador de postura defensiva ICS/SCADA
+    <small>PLC virtual con Modbus TCP real · campaña red team · IDS y mitigación blue team · evidencia encadenada</small></h1>
+  <div class="estado"><span id="version" class="ver"></span><span class="punto" id="punto"></span><span id="estado">en espera</span></div>
+</header>
+
+<main>
+  <!-- ─────────── controles ─────────── -->
+  <div class="pila">
+    <section class="panel">
+      <h2>1 · Jurisdicción a defender</h2>
+      <div class="cuerpo" id="perfiles"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2 · Escenario de ataque</h2>
+      <div class="cuerpo" id="dificultades"></div>
+    </section>
+
+    <section class="panel">
+      <div class="cuerpo">
+        <label class="raw"><input type="checkbox" id="raw"> Modo RAW (scapy sobre loopback)</label>
+        <p class="nota" id="raw-nota"></p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="cuerpo"><button id="lanzar" disabled>▶ Lanzar simulación</button></div>
+      <p class="nota">Levanta un PLC virtual en <code>127.0.0.1:15100</code> y lo ataca de verdad por
+        Modbus TCP. Todo ocurre en tu máquina, contra un PLC propio.</p>
+    </section>
+  </div>
+
+  <!-- ─────────── timeline ─────────── -->
+  <div class="pila">
+    <div class="kpis">
+      <div class="kpi rojo"><b id="k-ataques">0</b><span>ataques</span></div>
+      <div class="kpi azul"><b id="k-alertas">0</b><span>alertas IDS</span></div>
+      <div class="kpi verde"><b id="k-mitig">0</b><span>mitigaciones</span></div>
+      <div class="kpi violeta"><b id="k-evid">0</b><span>bloques evidencia</span></div>
+    </div>
+
+    <section class="panel">
+      <h2>Consola de operación — en vivo</h2>
+      <div id="linea"><div class="vacio">Elegí una jurisdicción y un escenario, después tocá
+        <b>Lanzar simulación</b>.<br>Vas a ver el ataque y la respuesta del blue team paso a paso.</div></div>
+      <div class="links">
+        <a id="a-reporte" class="off" href="/reporte" target="_blank">Reporte de incidente</a>
+        <a id="a-evid" class="off" href="/evidencia" target="_blank">Cadena de evidencia (JSON)</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- ─────────── HMI + explicación ─────────── -->
+  <div class="pila">
+    <section class="panel">
+      <h2>HMI · registros del PLC</h2>
+      <div class="cuerpo" id="hmi"><div class="vacio" style="padding:20px 0">Sin planta levantada.</div></div>
+      <p class="nota">Valores leídos del banco de holding registers real del PLC. En rojo, los que
+        quedaron fuera de su rango seguro por el ataque.</p>
+    </section>
+
+    <section class="panel">
+      <h2>¿Qué hace esto?</h2>
+      <div class="cuerpo" style="font-size:12.5px;color:var(--tenue)">
+        <p>Responde una pregunta concreta: <b>si atacan la infraestructura crítica de este territorio,
+        ¿se detecta y se contiene?</b> — y deja la prueba por escrito.</p>
+        <div class="paso"><i>1</i><div><b>Perfil territorial.</b> Escala, población, digitalización y
+          presupuesto definen la superficie de ataque y los recursos de defensa.</div></div>
+        <div class="paso"><i>2</i><div><b>Escenario determinístico.</b> Mismo perfil + misma dificultad
+          = mismo escenario, recortado al techo que la escala permite.</div></div>
+        <div class="paso"><i>3</i><div><b>Planta simulada.</b> Un PLC virtual sirve Modbus TCP real con
+          los registros de agua, energía o accesos.</div></div>
+        <div class="paso"><i>4</i><div><b>Red team.</b> Los 5 ataques (scan, spoofing, replay, escritura
+          ilegítima y flood) corren en modo portable por sockets Modbus TCP reales, sin scapy ni permisos
+          de administrador. Las variantes con paquetes crudos (SYN scan, IP spoofing, reinyección de frames)
+          quedan en redteam/ para entornos con privilegios.</div></div>
+        <div class="paso"><i>5</i><div><b>Blue team.</b> Tres reglas de IDS mapeadas a MITRE ATT&CK for
+          ICS, y mitigación limitada por el presupuesto del perfil.</div></div>
+        <div class="paso"><i>6</i><div><b>Evidencia y reporte.</b> Cada alerta se encadena por SHA-256
+          y se emite un reporte de incidente verificable.</div></div>
+      </div>
+      <details>
+        <summary>Reglas del IDS</summary>
+        <div class="cuerpo" id="reglas"></div>
+      </details>
+      <details>
+        <summary>Glosario de ataques</summary>
+        <div class="cuerpo" id="glosario"></div>
+      </details>
+      <details>
+        <summary>Alcance y límites</summary>
+        <div class="cuerpo">
+          <p>Los ataques van contra un PLC virtual propio en <code>127.0.0.1</code>: no tocan ningún
+            equipo real ni salen de la máquina.</p>
+          <p>Los perfiles son plantillas con datos <b>placeholder</b>, no datos reales de ningún
+            municipio, provincia o país.</p>
+          <p><code>aislar_segmento</code> es simulado: registra la acción, no desconecta hardware.</p>
+        </div>
+      </details>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let ctx = null, perfilSel = null, dificultadSel = "dificil", stream = null;
+const k = {ataques:0, alertas:0, mitig:0, evid:0};
+
+const NOMBRE_ESCALA = {municipal:"Municipio", provincial:"Provincia", nacional:"Nación"};
+const ESTILO = {
+  perfil:["gris","Perfil"], escenario:["gris","Escenario"], planta:["azul","Planta"],
+  trafico_fondo:["verde","Baseline"], ataque:["rojo","Red team"], registros:["ambar","HMI"],
+  metrica:["rojo","Red team"], deteccion:["azul","IDS"], mitigacion:["verde","Mitigación"],
+  evidencia:["violeta","Evidencia"], fin:["verde","Cierre"], error:["rojo","Error"]
+};
+
+function miles(n){ return n.toLocaleString("es-AR"); }
+
+function setEstado(txt, clase){
+  $("#estado").textContent = txt;
+  $("#punto").className = "punto" + (clase ? " " + clase : "");
+}
+
+function evento(fase, titulo, texto){
+  const [color, tag] = ESTILO[fase] || ["gris", fase];
+  const linea = $("#linea");
+  if (linea.querySelector(".vacio")) linea.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "ev " + color;
+  div.innerHTML = `<div class="tit"><span class="tag">${tag}</span><span></span></div>` +
+                  (texto ? `<div class="txt"></div>` : "");
+  div.querySelector(".tit span:last-child").textContent = titulo;
+  if (texto) div.querySelector(".txt").textContent = texto;
+  linea.appendChild(div);
+  linea.scrollTop = linea.scrollHeight;
+}
+
+function pintarHMI(registros){
+  $("#hmi").innerHTML = registros.map(r => `
+    <div class="reg ${r.fuera_de_rango ? "mal" : ""}">
+      <div class="n">${r.nombre}<em>rango ${r.rango[0]}–${r.rango[1]} ${r.unidad} · criticidad ${r.criticidad}</em></div>
+      <div class="v">${r.valor} ${r.unidad === "bool" ? "" : r.unidad}</div>
+    </div>`).join("");
+}
+
+function pintarControles(){
+  if(ctx.version) $("#version").textContent = "v" + ctx.version;
+
+  const raw = $("#raw"), nota = $("#raw-nota");
+  raw.checked = !!ctx.raw_por_defecto;
+  if(ctx.privilegios_raw){
+    nota.textContent = "Hay privilegios de red cruda: scan/spoofing/replay corren con scapy (paquetes crudos) sobre 127.0.0.1. No sale tráfico de la máquina.";
+  } else {
+    nota.textContent = "Sin privilegios de red cruda (root/CAP_NET_RAW o Administrador+Npcap). Si lo activás, scan/spoofing/replay caen a la variante portable.";
+  }
+  $("#perfiles").innerHTML = ctx.perfiles.map(p => `
+    <button class="opcion" data-perfil="${p.id}">
+      <b>${NOMBRE_ESCALA[p.escala] || p.escala} — ${miles(p.poblacion)} hab.</b>
+      <span>${p.dependencias.length} dependencia(s) crítica(s): ${[...new Set(p.dependencias)].join(", ")}</span>
+      <div class="meta">
+        <span class="chip">digitalización ${p.nivel_digitalizacion}/5</span>
+        <span class="chip">presupuesto ${p.presupuesto}/5</span>
+        <span class="chip">${p.marco_normativo ? "con" : "sin"} marco normativo</span>
+      </div>
+    </button>`).join("");
+
+  $("#dificultades").innerHTML = ctx.dificultades.map(d => `
+    <button class="opcion ${d.id === dificultadSel ? "sel" : ""}" data-dificultad="${d.id}">
+      <b>${d.nombre}</b><span>${d.resumen}</span><span style="margin-top:5px">${d.detalle}</span>
+    </button>`).join("");
+
+  $("#reglas").innerHTML = ctx.reglas.map(r => `
+    <p><b>${r.id}</b> — ${r.nombre}<br>${r.descripcion}
+       <span class="chip">MITRE ${r.attack_id}</span> <span class="chip">severidad ${r.severidad}</span></p>`).join("");
+
+  $("#glosario").innerHTML = Object.entries(ctx.explicacion_ataques)
+    .map(([nombre, txt]) => `<p><b>${nombre}</b> — ${txt}</p>`).join("");
+
+  document.querySelectorAll("[data-perfil]").forEach(b => b.onclick = () => {
+    perfilSel = b.dataset.perfil;
+    document.querySelectorAll("[data-perfil]").forEach(o => o.classList.toggle("sel", o === b));
+    $("#lanzar").disabled = false;
+  });
+  document.querySelectorAll("[data-dificultad]").forEach(b => b.onclick = () => {
+    dificultadSel = b.dataset.dificultad;
+    document.querySelectorAll("[data-dificultad]").forEach(o => o.classList.toggle("sel", o === b));
+  });
+}
+
+function manejar(e){
+  switch (e.fase){
+    case "perfil":
+      evento(e.fase, `Jurisdicción ${e.escala}: ${miles(e.poblacion)} habitantes, presupuesto ${e.presupuesto}/5`, e.detalle);
+      break;
+    case "escenario":
+      evento(e.fase, `Escenario ${e.dificultad}: ${e.tipos_ataque.join(", ")} · pico ${e.intensidad_pps} pps sobre ${e.ruido_fondo_pps} pps de fondo`, e.detalle);
+      break;
+    case "planta":
+      evento(e.fase, `PLC '${e.dependencia}' en línea — Modbus TCP ${e.host}:${e.puerto}`, e.detalle);
+      pintarHMI(e.registros);
+      break;
+    case "trafico_fondo":
+      evento(e.fase, `${e.polls} lecturas del HMI autorizado — ninguna alerta`, e.detalle);
+      break;
+    case "aviso":
+      evento(e.fase, "Modo de ejecución", e.detalle);
+      break;
+    case "ataque":
+      if (e.estado === "ejecutado"){ k.ataques++; $("#k-ataques").textContent = k.ataques; }
+      evento(e.fase, (e.estado === "omitido" ? "⃠ " : "▸ ") + e.titulo, e.detalle);
+      break;
+    case "registros":
+      pintarHMI(e.registros);
+      evento(e.fase, "Registros del PLC actualizados", e.nota);
+      break;
+    case "metrica":
+      evento(e.fase, e.detalle, "");
+      break;
+    case "deteccion":
+      k.alertas++; $("#k-alertas").textContent = k.alertas;
+      evento(e.fase, `${e.regla_id} · ${e.regla_nombre} (severidad ${e.severidad}, MITRE ${e.attack_id})`, e.evidencia);
+      break;
+    case "mitigacion":
+      k.mitig = e.acciones.length; $("#k-mitig").textContent = k.mitig;
+      evento(e.fase, e.acciones.length ? [...new Set(e.acciones.map(a => a.accion))].join(" · ") : "sin acciones", e.detalle);
+      break;
+    case "evidencia":
+      k.evid = e.bloques; $("#k-evid").textContent = k.evid;
+      evento(e.fase, `${e.bloques} bloques encadenados — cadena ${e.verificada ? "verificada ✓" : "ALTERADA ✗"}`, e.detalle);
+      break;
+    case "fin":
+      evento(e.fase, `${e.ataques_ejecutados} ataques ejecutados (${e.ataques_omitidos} omitidos) → ${e.alertas} alertas`, e.narrativa);
+      $("#a-reporte").classList.remove("off");
+      $("#a-evid").classList.remove("off");
+      break;
+    case "error":
+      evento("error", "La simulación falló", e.detalle);
+      break;
+  }
+}
+
+$("#lanzar").onclick = () => {
+  if (stream) stream.close();
+  Object.keys(k).forEach(x => k[x] = 0);
+  ["ataques","alertas","mitig","evid"].forEach(x => $("#k-" + x).textContent = "0");
+  $("#linea").innerHTML = "";
+  $("#a-reporte").classList.add("off");
+  $("#a-evid").classList.add("off");
+  $("#lanzar").disabled = true;
+  setEstado("simulación en curso", "activo");
+
+  const raw = $("#raw").checked ? 1 : 0;
+  stream = new EventSource(`/api/simular?perfil=${perfilSel}&dificultad=${dificultadSel}&raw=${raw}`);
+  stream.onmessage = (msg) => {
+    const e = JSON.parse(msg.data);
+    manejar(e);
+    if (e.fase === "fin" || e.fase === "error"){
+      stream.close(); stream = null;
+      $("#lanzar").disabled = false;
+      setEstado(e.fase === "fin" ? "simulación completa" : "error", e.fase === "fin" ? "listo" : "");
+    }
+  };
+  stream.onerror = () => {
+    if (!stream) return;
+    stream.close(); stream = null;
+    $("#lanzar").disabled = false;
+    setEstado("conexión interrumpida", "");
+  };
+};
+
+fetch("/api/contexto").then(r => r.json()).then(datos => {
+  ctx = datos;
+  pintarControles();
+  setEstado("listo", "listo");
+});
+</script>
+</body>
+</html>

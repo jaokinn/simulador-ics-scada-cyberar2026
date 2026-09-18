@@ -1,0 +1,40 @@
+# Presets de dificultad — Bloque A, Paso 4.
+#
+# TODO(equipo): la tabla de SPEC.md sección 4 solo da rangos cualitativos
+# ("bajo/medio/alto"). Los valores numéricos concretos de abajo son una propuesta
+# razonable para arrancar a desarrollar y probar la demo, NO un valor validado.
+# Ajustarlos según cómo se vean en el tablero real antes de la entrega final.
+#
+# Cada preset instancia el modelo Escenario de core/schemas.py.
+
+facil:
+  tipos_ataque:
+    - escritura_ilegitima
+  intensidad_pps: 40 # baja, evidente contra un ruido de fondo bajo
+  criticidad_objetivo: baja
+  sofisticacion: ruidoso
+  ruido_fondo_pps: 5
+
+normal:
+  tipos_ataque:
+    - scan
+    - escritura_ilegitima
+    - replay
+  intensidad_pps: 120 # media
+  criticidad_objetivo: media
+  sofisticacion: medio
+  ruido_fondo_pps: 20
+
+dificil:
+  tipos_ataque:
+    - scan
+    - spoofing
+    - replay
+    - escritura_ilegitima
+    - flood
+  # "Mixta (lenta + ráfaga)": el orquestador (Paso 18) alterna tramos espaciados
+  # (sofisticacion=sigiloso) con ráfagas cortas hacia este pico de intensidad.
+  intensidad_pps: 250
+  criticidad_objetivo: alta
+  sofisticacion: sigiloso
+  ruido_fondo_pps: 60

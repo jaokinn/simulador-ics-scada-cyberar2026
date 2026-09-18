@@ -1,0 +1,7 @@
+# Dependencias opcionales — el sistema funciona completo sin esto instalado.
+#
+# weasyprint: convierte el reporte HTML a PDF (blueteam/reporte.py). Arrastra
+# librerías de sistema pesadas (GTK/Cairo/Pango), especialmente en Windows —
+# no instalar a último momento antes de la demo. Si no está, el reporte queda
+# como HTML solamente (funciona igual en el navegador).
+weasyprint==63.1

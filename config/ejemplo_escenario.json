@@ -1,0 +1,45 @@
+{
+  "_comentario": "Bloque A, Paso 5 — instancia manual de ejemplo, no generada. Válida contra PerfilJurisdiccion y Escenario de core/schemas.py. Usa el preset 'normal' de config/presets_dificultad.yaml y un perfil municipal placeholder (ver SPEC.md secciones 3 y 4).",
+
+  "perfil_jurisdiccion": {
+    "_comentario_escala_gobierno": "Municipal: la escala más chica, manda el tope de superficie de ataque permitido (SPEC.md sección 3, 'lógica territorial').",
+    "escala_gobierno": "municipal",
+
+    "_comentario_poblacion": "Placeholder — reemplazar con dato citado de un municipio de ejemplo.",
+    "poblacion": 45000,
+    "poblacion_fuente": "placeholder — reemplazar con dato citado",
+
+    "_comentario_dependencias_criticas": "Un municipio chico: 2 dependencias críticas digitalizadas (agua y accesos), sin energía propia.",
+    "dependencias_criticas": ["agua", "accesos"],
+
+    "_comentario_nivel_digitalizacion": "Escala 1-5. Nivel medio-bajo: pocos registros expuestos y escribibles remotamente.",
+    "nivel_digitalizacion": 2,
+    "nivel_digitalizacion_fuente": "placeholder — reemplazar con dato citado",
+
+    "_comentario_presupuesto_ciberseguridad": "Escala 1-5. Presupuesto bajo: pocas reglas de detección activas de arranque.",
+    "presupuesto_ciberseguridad": 2,
+    "presupuesto_ciberseguridad_fuente": "placeholder — reemplazar con dato citado",
+
+    "_comentario_marco_normativo_vigente": "Sin norma de ciberseguridad municipal vigente todavía.",
+    "marco_normativo_vigente": false
+  },
+
+  "escenario": {
+    "_comentario": "Preset 'normal' de config/presets_dificultad.yaml, sin modificar.",
+
+    "_comentario_tipos_ataque": "2-3 ataques encadenados (dificultad normal): reconocimiento, luego escritura no autorizada, luego replay.",
+    "tipos_ataque": ["scan", "escritura_ilegitima", "replay"],
+
+    "_comentario_intensidad_pps": "Paquetes/seg del ataque — intensidad media, ver SPEC.md sección 4.",
+    "intensidad_pps": 120,
+
+    "_comentario_criticidad_objetivo": "Registros de criticidad media/alta del PLC de 'agua' (ver Paso 10, Bloque C).",
+    "criticidad_objetivo": "media",
+
+    "_comentario_sofisticacion": "Evasión media: ni tan expuesto como ruidoso, ni tan encubierto como sigiloso.",
+    "sofisticacion": "medio",
+
+    "_comentario_ruido_fondo_pps": "Paquetes/seg de tráfico legítimo simultáneo que enmascara el ataque.",
+    "ruido_fondo_pps": 20
+  }
+}
