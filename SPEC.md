@@ -132,5 +132,30 @@ que la nación.
 
 **Regla de seguridad no negociable:** los módulos de red team (Bloque D) son funcionalmente
 equivalentes a técnicas usadas en ataques reales a infraestructura crítica. Deben correr
-siempre dentro de la red Docker aislada sin salida a internet (Bloque G), nunca contra un
-objetivo real ni una red que no sea la simulación propia.
+siempre dentro de un entorno aislado sin salida a internet, nunca contra un objetivo real ni
+una red que no sea la simulación propia.
+
+## 7. Estado de implementación en la entrega
+
+Esta sección refleja cómo se materializó la entrega respecto del plan de arriba. El plan
+original (secciones 1-6) se mantiene como contexto de diseño; acá se anotan las diferencias.
+
+- **Bloques A–F: completos y probados por ejecución.** Perfil → escenario determinístico →
+  PLC virtual Modbus TCP real → tráfico de fondo → red team → IDS por reglas → mitigación →
+  evidencia con hash → reporte.
+- **Bloque G (integración): resuelto con un stack más liviano que el planificado.** En lugar
+  de FastAPI + Streamlit + Docker Compose, la integración es:
+  - `main.py`: pipeline completo en un solo proceso (CLI con `--cli`, tablero web por defecto).
+  - Tablero web local con la **librería estándar** (`http.server` + SSE), ligado a `127.0.0.1`
+    — sin dependencias web pesadas.
+  - Aislamiento por **loopback** (todo contra `127.0.0.1`) en vez de redes Docker; el
+    `Dockerfile` sigue disponible para quien prefiera contenedores.
+  - Empaquetado como **ejecutable de un solo archivo** (PyInstaller) para Windows y Linux.
+- **Red team portable + raw.** Los 5 ataques corren por defecto en modo **portable** (sockets
+  Modbus TCP reales, sin `scapy` ni privilegios); el modo `--raw` usa `scapy` sobre loopback
+  cuando hay privilegios de red cruda, con fallback automático a portable.
+- **Concurrencia:** cada corrida levanta su PLC en un puerto libre de loopback, de modo que
+  varias simulaciones simultáneas no chocan.
+- **Pendiente / roadmap:** escenario MVP de los 3 niveles de gobierno en paralelo en un mismo
+  tablero; más protocolos además de Modbus (OPC-UA, DNP3, S7 — el motor de IDS/evidencia/
+  reporte ya es agnóstico al protocolo); física de proceso y detección estadística.

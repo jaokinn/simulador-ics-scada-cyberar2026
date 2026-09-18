@@ -47,6 +47,29 @@ registro real; la regla de detección de ráfaga no contaba las lecturas de un a
 ejecución "ruidosa" no corría en simultáneo de verdad). El detalle de estas correcciones queda en
 el historial de esta conversación de desarrollo.
 
+### Segunda fase de asistencia de IA (integración, portabilidad y empaquetado)
+
+Una segunda etapa de trabajo, también con asistencia de IA (Devin, de Cognition AI), sobre la
+misma especificación humana, produjo la capa de integración y entrega que faltaba. Incluye:
+
+- El entrypoint unificado `main.py`, que corre el pipeline completo en un solo proceso
+  (perfil → escenario → PLC → ataque → detección → mitigación → evidencia → reporte).
+- El tablero web local estilo SCADA (`dashboard/servidor.py`, `dashboard/ui.html`) con
+  eventos en vivo (SSE), sobre la librería estándar de Python (sin FastAPI ni Streamlit),
+  ligado solo a `127.0.0.1`.
+- Las **variantes portables** de scan/replay/spoofing (`redteam/`) sobre sockets Modbus TCP
+  reales, para que los 5 ataques corran sin `scapy` ni privilegios; y el modo `--raw` que usa
+  `scapy` sobre loopback cuando hay privilegios, con fallback automático a portable.
+- Los ejecutables de un solo archivo para Windows y Linux (`simulador-ics-scada.spec`,
+  PyInstaller) y su documentación (`BUILD-EJECUTABLE.md`).
+- Correcciones de errores reales encontrados por ejecución (por ejemplo: acentos rotos en
+  consola de Windows, traceback al cerrar sockets en el flood, y el choque de puerto del PLC
+  cuando se lanzaban varias simulaciones a la vez — ahora cada corrida usa un puerto libre
+  propio en loopback).
+
+Igual que en la primera fase, las decisiones de diseño (variables, reglas, arquitectura) son
+del equipo humano; la IA se usó para implementar, empaquetar y probar.
+
 ### Piezas adaptadas del trabajo de un compañero de equipo
 
 Tres componentes de este repositorio (`blueteam/export_sigma.py`, `blueteam/evidencia.py`, y la
